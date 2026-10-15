@@ -6,23 +6,17 @@ namespace BitCheck.Application
     /// <summary>
     /// Main application class that coordinates the BitCheck process.
     /// </summary>
-    public class BitCheckApplication
+    /// <remarks>
+    /// Initializes a new instance of the BitCheckApplication class.
+    /// </remarks>
+    /// <param name="options">Application options.</param>
+    public class BitCheckApplication(AppOptions options)
     {
-        private readonly AppOptions _options;
+        private readonly AppOptions _options = options;
         private readonly ProcessingStats _stats = new();
         private readonly CancellationTokenSource _cts = new();
         private string? _lastPrintedDirectory;
-        private readonly IgnoreRuleSet _baseIgnoreRules;
-
-        /// <summary>
-        /// Initializes a new instance of the BitCheckApplication class.
-        /// </summary>
-        /// <param name="options">Application options.</param>
-        public BitCheckApplication(AppOptions options)
-        {
-            _options = options;
-            _baseIgnoreRules = IgnoreRuleSet.Parse(options.IgnorePatterns);
-        }
+        private readonly IgnoreRuleSet _baseIgnoreRules = IgnoreRuleSet.Parse(options.IgnorePatterns);
 
         /// <summary>
         /// Runs the BitCheck application.
@@ -348,7 +342,7 @@ namespace BitCheck.Application
         /// <param name="db">The database service to use.</param>
         /// <param name="databaseKey">The database key for the file.</param>
         /// <param name="displayName">The display name for the file.</param>
-        private void DeleteFileFromDatabase(IDatabaseService db, string databaseKey, string displayName)
+        private void DeleteFileFromDatabase(DatabaseService db, string databaseKey, string displayName)
         {
             var existingEntry = db.GetFileEntry(databaseKey);
             if (existingEntry == null)
@@ -369,7 +363,7 @@ namespace BitCheck.Application
         /// <param name="databaseKey">The database key for the file.</param>
         /// <param name="displayName">The display name for the file.</param>
         /// <param name="fullFilePath">The full path to the file.</param>
-        private void ShowFileInfo(IDatabaseService db, string databaseKey, string displayName, string fullFilePath)
+        private static void ShowFileInfo(DatabaseService db, string databaseKey, string displayName, string fullFilePath)
         {
             var entry = db.GetFileEntry(databaseKey);
             if (entry == null)
@@ -603,7 +597,7 @@ namespace BitCheck.Application
         /// </summary>
         /// <param name="directoryPath">The directory path to create the database for.</param>
         /// <returns>A new <see cref="DatabaseService"/> instance.</returns>
-        private static IDatabaseService CreateDatabase(string directoryPath)
+        private static DatabaseService CreateDatabase(string directoryPath)
         {
             var dbPath = Path.Combine(directoryPath, BitCheckConstants.DatabaseFileName);
             return new DatabaseService(dbPath);
@@ -827,7 +821,7 @@ namespace BitCheck.Application
             {
                 PrintDirectoryHeaderIfNeeded(filePath);
                 Console.WriteLine($"[UPDATED] {displayName} - File modified ({currentModified:yyyy-MM-dd HH:mm:ss} UTC)");
-                UpdateEntryInternal(db, existingEntry, currentHash, currentModified, currentCreated);
+                UpdateEntryInternal((DatabaseService)db, existingEntry, currentHash, currentModified, currentCreated);
                 _stats.FilesUpdated++;
                 return;
             }
@@ -874,7 +868,7 @@ namespace BitCheck.Application
 
             if (_options.Update)
             {
-                UpdateEntryInternal(db, existingEntry, currentHash, currentModified, currentCreated);
+                UpdateEntryInternal((DatabaseService)db, existingEntry, currentHash, currentModified, currentCreated);
                 Console.WriteLine("  [UPDATED] Database entry updated");
                 _stats.FilesUpdated++;
             }
@@ -891,7 +885,7 @@ namespace BitCheck.Application
         private void UpdateEntry(IDatabaseService db, FileEntry existingEntry, string filePath, string displayName, string currentHash)
         {
             var fileInfo = new FileInfo(filePath);
-            UpdateEntryInternal(db, existingEntry, currentHash, fileInfo.LastWriteTimeUtc, fileInfo.CreationTimeUtc);
+            UpdateEntryInternal((DatabaseService)db, existingEntry, currentHash, fileInfo.LastWriteTimeUtc, fileInfo.CreationTimeUtc);
             PrintDirectoryHeaderIfNeeded(filePath);
             Console.WriteLine($"[UPDATE] {displayName}");
             _stats.FilesUpdated++;
@@ -922,7 +916,7 @@ namespace BitCheck.Application
         /// <param name="hash">The current hash of the file.</param>
         /// <param name="lastModified">The current modified date of the file.</param>
         /// <param name="created">The current created date of the file.</param>
-        private void UpdateEntryInternal(IDatabaseService db, FileEntry entry, string hash, DateTime lastModified, DateTime created)
+        private static void UpdateEntryInternal(DatabaseService db, FileEntry entry, string hash, DateTime lastModified, DateTime created)
         {
             entry.Hash = hash;
             entry.HashDate = DateTime.UtcNow;
@@ -972,7 +966,7 @@ namespace BitCheck.Application
         /// </summary>
         /// <param name="db">The database service to use.</param>
         /// <param name="rootPath">The root path to check.</param>
-        private void CheckForMissingFilesSingleDb(IDatabaseService db, string rootPath)
+        private void CheckForMissingFilesSingleDb(DatabaseService db, string rootPath)
         {
             var fullRootPath = Path.GetFullPath(rootPath);
 

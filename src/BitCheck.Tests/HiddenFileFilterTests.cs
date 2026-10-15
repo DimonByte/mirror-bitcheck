@@ -160,7 +160,7 @@ namespace BitCheck.Tests
 
             // Act
             var files = Directory.GetFiles(_testDir);
-            var hiddenCount = files.Count(f => Path.GetFileName(f).StartsWith("."));
+            var hiddenCount = files.Count(f => Path.GetFileName(f).StartsWith('.'));
 
             // Assert
             Assert.AreEqual(hiddenFiles.Length, hiddenCount, "All dot files should be detected as hidden");
@@ -177,8 +177,8 @@ namespace BitCheck.Tests
 
             // Act
             var allFiles = Directory.GetFiles(_testDir);
-            var hiddenFiles = allFiles.Where(f => Path.GetFileName(f).StartsWith(".")).ToArray();
-            var regularFiles = allFiles.Where(f => !Path.GetFileName(f).StartsWith(".")).ToArray();
+            var hiddenFiles = allFiles.Where(f => Path.GetFileName(f).StartsWith('.')).ToArray();
+            var regularFiles = allFiles.Where(f => !Path.GetFileName(f).StartsWith('.')).ToArray();
 
             // Assert
             Assert.HasCount(2, hiddenFiles, "Should detect 2 hidden files");
@@ -195,7 +195,7 @@ namespace BitCheck.Tests
 
             // Act
             var dirs = Directory.GetDirectories(_testDir, "*", SearchOption.AllDirectories);
-            var hiddenDirs = dirs.Where(d => new DirectoryInfo(d).Name.StartsWith(".")).ToArray();
+            var hiddenDirs = dirs.Where(d => new DirectoryInfo(d).Name.StartsWith('.')).ToArray();
 
             // Assert
             Assert.HasCount(2, hiddenDirs, "Both hidden directories should be detected");

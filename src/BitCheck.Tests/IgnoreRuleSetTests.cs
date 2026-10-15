@@ -8,7 +8,7 @@ namespace BitCheck.Tests
         [TestMethod]
         public void BlankLinesAndComments_AreSkipped()
         {
-            var rules = IgnoreRuleSet.Parse(new[] { "", "   ", "# a comment", "*.par2" });
+            var rules = IgnoreRuleSet.Parse(["", "   ", "# a comment", "*.par2"]);
 
             Assert.IsTrue(rules.IsIgnored("archive.par2"));
             Assert.IsFalse(rules.IsIgnored("#not-a-comment"));
@@ -17,7 +17,7 @@ namespace BitCheck.Tests
         [TestMethod]
         public void WildcardPattern_MatchesBasename()
         {
-            var rules = IgnoreRuleSet.Parse(new[] { "*.par2" });
+            var rules = IgnoreRuleSet.Parse(["*.par2"]);
 
             Assert.IsTrue(rules.IsIgnored("data.par2"));
             Assert.IsFalse(rules.IsIgnored("data.txt"));
@@ -26,7 +26,7 @@ namespace BitCheck.Tests
         [TestMethod]
         public void QuestionMarkPattern_MatchesSingleCharacter()
         {
-            var rules = IgnoreRuleSet.Parse(new[] { "file?.log" });
+            var rules = IgnoreRuleSet.Parse(["file?.log"]);
 
             Assert.IsTrue(rules.IsIgnored("file1.log"));
             Assert.IsFalse(rules.IsIgnored("file12.log"));
@@ -35,7 +35,7 @@ namespace BitCheck.Tests
         [TestMethod]
         public void Negation_OverridesEarlierMatch_LastRuleWins()
         {
-            var rules = IgnoreRuleSet.Parse(new[] { "*.par2", "!keep.par2" });
+            var rules = IgnoreRuleSet.Parse(["*.par2", "!keep.par2"]);
 
             Assert.IsTrue(rules.IsIgnored("archive.par2"));
             Assert.IsFalse(rules.IsIgnored("keep.par2"));
@@ -44,7 +44,7 @@ namespace BitCheck.Tests
         [TestMethod]
         public void LaterPattern_OverridesEarlierNegation()
         {
-            var rules = IgnoreRuleSet.Parse(new[] { "!keep.par2", "keep.par2" });
+            var rules = IgnoreRuleSet.Parse(["!keep.par2", "keep.par2"]);
 
             Assert.IsTrue(rules.IsIgnored("keep.par2"));
         }
@@ -52,8 +52,8 @@ namespace BitCheck.Tests
         [TestMethod]
         public void Combine_ChildRulesEvaluatedAfterParent_CanOverrideViaNegation()
         {
-            var parent = IgnoreRuleSet.Parse(new[] { "*.par2" });
-            var child = IgnoreRuleSet.Parse(new[] { "!special.par2" });
+            var parent = IgnoreRuleSet.Parse(["*.par2"]);
+            var child = IgnoreRuleSet.Parse(["!special.par2"]);
 
             var combined = IgnoreRuleSet.Combine(parent, child);
 
@@ -64,8 +64,8 @@ namespace BitCheck.Tests
         [TestMethod]
         public void Combine_WithEmptyChild_ReturnsParentRules()
         {
-            var parent = IgnoreRuleSet.Parse(new[] { "*.par2" });
-            var child = IgnoreRuleSet.Parse(Array.Empty<string>());
+            var parent = IgnoreRuleSet.Parse(["*.par2"]);
+            var child = IgnoreRuleSet.Parse([]);
 
             var combined = IgnoreRuleSet.Combine(parent, child);
 
@@ -95,7 +95,7 @@ namespace BitCheck.Tests
             Directory.CreateDirectory(directory);
             try
             {
-                File.WriteAllLines(Path.Combine(directory, BitCheckConstants.IgnoreFileName), new[] { "*.par2" });
+                File.WriteAllLines(Path.Combine(directory, BitCheckConstants.IgnoreFileName), ["*.par2"]);
 
                 var rules = IgnoreRuleSet.Load(directory);
 

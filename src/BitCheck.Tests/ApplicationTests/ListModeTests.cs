@@ -47,10 +47,10 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(listOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Mode: List", "Should show list mode");
-            StringAssert.Contains(output, "Total files tracked:", "Should show total count");
-            StringAssert.Contains(output, "list1.txt", "Should list first file");
-            StringAssert.Contains(output, "list2.txt", "Should list second file");
+            Assert.Contains("Mode: List", output, "Should show list mode");
+            Assert.Contains("Total files tracked:", output, "Should show total count");
+            Assert.Contains("list1.txt", output, "Should list first file");
+            Assert.Contains("list2.txt", output, "Should list second file");
         }
 
         [TestMethod]
@@ -95,7 +95,7 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(listOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[MISSING]", "Should indicate file is missing");
+            Assert.Contains("[MISSING]", output, "Should indicate file is missing");
         }
 
         [TestMethod]
@@ -122,8 +122,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Error:", "Should show error");
-            StringAssert.Contains(output, "--list cannot be used with --file", "Should explain list cannot use file");
+            Assert.Contains("Error:", output, "Should show error");
+            Assert.Contains("--list cannot be used with --file", output, "Should explain list cannot use file");
         }
 
         [TestMethod]
@@ -147,8 +147,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Error:", "Should show error");
-            StringAssert.Contains(output, "--list cannot be combined with other operations", "Should explain list is standalone");
+            Assert.Contains("Error:", output, "Should show error");
+            Assert.Contains("--list cannot be combined with other operations", output, "Should explain list is standalone");
         }
     }
 }

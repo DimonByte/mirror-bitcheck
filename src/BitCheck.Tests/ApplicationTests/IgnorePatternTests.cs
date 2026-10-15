@@ -13,7 +13,7 @@ namespace BitCheck.Tests.ApplicationTests
             var parityFile = Path.Combine(_testDir, "archive.par2");
             File.WriteAllText(keepFile, "keep");
             File.WriteAllText(parityFile, "parity");
-            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), new[] { "*.par2" });
+            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), ["*.par2"]);
 
             var options = new AppOptions(
                 Recursive: false,
@@ -57,7 +57,7 @@ namespace BitCheck.Tests.ApplicationTests
                 Delete: false,
                 Info: false,
                 List: false,
-                IgnorePatterns: new[] { "*.par2" });
+                IgnorePatterns: ["*.par2"]);
 
             RunApp(options, _testDir);
 
@@ -74,8 +74,8 @@ namespace BitCheck.Tests.ApplicationTests
 
             File.WriteAllText(Path.Combine(_testDir, "root.par2"), "root parity");
             File.WriteAllText(Path.Combine(subDir, "special.par2"), "special parity");
-            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), new[] { "*.par2" });
-            File.WriteAllLines(Path.Combine(subDir, BitCheckConstants.IgnoreFileName), new[] { "!special.par2" });
+            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), ["*.par2"]);
+            File.WriteAllLines(Path.Combine(subDir, BitCheckConstants.IgnoreFileName), ["!special.par2"]);
 
             var options = new AppOptions(
                 Recursive: true,
@@ -104,7 +104,7 @@ namespace BitCheck.Tests.ApplicationTests
             var ignoredDir = Path.Combine(_testDir, "vendor");
             Directory.CreateDirectory(ignoredDir);
             File.WriteAllText(Path.Combine(ignoredDir, "inside.txt"), "inside");
-            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), new[] { "vendor" });
+            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), ["vendor"]);
 
             var options = new AppOptions(
                 Recursive: true,
@@ -131,7 +131,7 @@ namespace BitCheck.Tests.ApplicationTests
         {
             var parityFile = Path.Combine(_testDir, "archive.par2");
             File.WriteAllText(parityFile, "parity");
-            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), new[] { "*.par2" });
+            File.WriteAllLines(Path.Combine(_testDir, BitCheckConstants.IgnoreFileName), ["*.par2"]);
 
             var options = new AppOptions(
                 Recursive: false,

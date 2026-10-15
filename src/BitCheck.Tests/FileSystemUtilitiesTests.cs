@@ -78,7 +78,9 @@ public class FileSystemUtilitiesTests
     [TestMethod]
     public void ComputeHash_ReturnsNullWhenFileMissing()
     {
-        var hash = FileSystemUtilities.ComputeHash(Path.Combine(_testDir, "missing.txt"));
+        var hash = FileSystemUtilities.ComputeHash(Path.Combine(_testDir, "missing.txt"), TestContext.CancellationToken);
         Assert.IsNull(hash);
     }
+
+    public TestContext TestContext { get; set; }
 }

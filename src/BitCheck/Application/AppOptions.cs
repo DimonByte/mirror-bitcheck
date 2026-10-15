@@ -15,6 +15,6 @@ namespace BitCheck.Application
         bool List,
         IReadOnlyList<string>? IgnorePatterns = null)
     {
-        public IReadOnlyList<string> IgnorePatterns { get; init; } = IgnorePatterns ?? Array.Empty<string>();
+        public IReadOnlyList<string> IgnorePatterns { get; init; } = IgnorePatterns ?? [];
     }
 }

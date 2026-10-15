@@ -16,7 +16,7 @@ namespace BitCheck.Application
     /// </summary>
     public sealed class IgnoreRuleSet
     {
-        private static readonly IgnoreRuleSet Empty = new(Array.Empty<IgnoreRule>());
+        private static readonly IgnoreRuleSet Empty = new([]);
 
         private readonly IReadOnlyList<IgnoreRule> _rules;
 

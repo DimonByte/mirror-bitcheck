@@ -69,8 +69,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(addOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[SKIP]", "Existing file should be skipped on second --add run");
-            StringAssert.Contains(output, "Already in database", "Skip message should indicate file is already tracked");
+            Assert.Contains("[SKIP]", output, "Existing file should be skipped on second --add run");
+            Assert.Contains("Already in database", output, "Skip message should indicate file is already tracked");
 
             using (var db = new DatabaseService(dbPath))
             {
@@ -119,7 +119,7 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(addCheckOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[OK]", "Existing file should be checked when --check is specified");
+            Assert.Contains("[OK]", output, "Existing file should be checked when --check is specified");
             Assert.DoesNotContain("Already in database", output, "File should not be skipped when --check is active");
         }
     }

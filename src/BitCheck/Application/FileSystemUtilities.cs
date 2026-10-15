@@ -13,9 +13,7 @@ namespace BitCheck.Application
         /// <param name="directory">Absolute or relative directory path.</param>
         /// <returns>An array of eligible file paths.</returns>
         public static string[] GetEligibleFiles(string directory) =>
-            Directory.GetFiles(directory)
-                .Where(f => !ShouldSkipFile(f))
-                .ToArray();
+            [.. Directory.GetFiles(directory).Where(f => !ShouldSkipFile(f))];
 
         /// <summary>
         /// Returns subdirectories that are not hidden.
@@ -23,9 +21,7 @@ namespace BitCheck.Application
         /// <param name="directory">Absolute or relative directory path.</param>
         /// <returns>An array of eligible directory paths.</returns>
         public static string[] GetEligibleDirectories(string directory) =>
-            Directory.GetDirectories(directory)
-                .Where(d => !IsHidden(d))
-                .ToArray();
+            [.. Directory.GetDirectories(directory).Where(d => !IsHidden(d))];
 
         /// <summary>
         /// Determines whether the application can safely read the specified file.

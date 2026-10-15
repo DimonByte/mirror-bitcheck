@@ -15,8 +15,8 @@ namespace BitCheck.Tests
             Assert.IsNotNull(entry);
             Assert.AreEqual(string.Empty, entry.FileName);
             Assert.AreEqual(string.Empty, entry.Hash);
-            Assert.AreEqual(default(DateTime), entry.HashDate);
-            Assert.AreEqual(default(DateTime), entry.LastCheckDate);
+            Assert.AreEqual(default, entry.HashDate);
+            Assert.AreEqual(default, entry.LastCheckDate);
         }
 
         [TestMethod]

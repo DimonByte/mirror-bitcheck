@@ -17,7 +17,7 @@ namespace BitCheck.Database
         private readonly string _databaseFileName;
         private Dictionary<string, FileEntry>? _cache;
         private bool _isDirty;
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
 
         /// <summary>
         /// Initializes a new instance of the DatabaseService class.
@@ -66,7 +66,7 @@ namespace BitCheck.Database
             lock (_lock)
             {
                 EnsureCacheLoaded();
-                return _cache!.Values.ToList(); // Return a copy to avoid modification issues
+                return [.. _cache!.Values]; // Return a copy to avoid modification issues
             }
         }
 
@@ -170,7 +170,7 @@ namespace BitCheck.Database
                     json = reader.ReadToEnd();
                 }
 
-                var entries = JsonSerializer.Deserialize(json, FileEntryJsonContext.Default.ListFileEntry) ?? new List<FileEntry>();
+                var entries = JsonSerializer.Deserialize(json, FileEntryJsonContext.Default.ListFileEntry) ?? [];
                 _cache = entries
                     .Where(e => !string.IsNullOrEmpty(e.FileName))
                     .ToDictionary(e => e.FileName!, e => e);
@@ -178,14 +178,14 @@ namespace BitCheck.Database
             catch (FileNotFoundException)
             {
                 // New database - this is expected
-                _cache = new Dictionary<string, FileEntry>();
+                _cache = [];
             }
             catch (Exception ex)
             {
                 // Warn user that existing database couldn't be loaded
                 Console.Error.WriteLine($"Warning: Could not load database '{_databaseFileName}': {ex.Message}");
                 Console.Error.WriteLine("Starting with empty database. Existing entries may be lost.");
-                _cache = new Dictionary<string, FileEntry>();
+                _cache = [];
             }
         }
 
@@ -235,6 +235,7 @@ namespace BitCheck.Database
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             Flush();
         }
     }

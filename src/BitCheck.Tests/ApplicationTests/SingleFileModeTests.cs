@@ -30,8 +30,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[ADD]", "Single file should be added");
-            StringAssert.Contains(output, "Single File:", "Header should indicate single file mode");
+            Assert.Contains("[ADD]", output, "Single file should be added");
+            Assert.Contains("Single File:", output, "Header should indicate single file mode");
 
             var dbPath = Path.Combine(_testDir, BitCheckConstants.DatabaseFileName);
             using var db = new DatabaseService(dbPath);
@@ -79,8 +79,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(checkOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[OK]", "File should pass check");
-            StringAssert.Contains(output, "Files checked: 1", "Summary should show 1 file checked");
+            Assert.Contains("[OK]", output, "File should pass check");
+            Assert.Contains("Files checked: 1", output, "Summary should show 1 file checked");
         }
 
         [TestMethod]
@@ -127,8 +127,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(checkOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[MISMATCH]", "Modified file should be detected as mismatch");
-            StringAssert.Contains(output, "Mismatches: 1", "Summary should show 1 mismatch");
+            Assert.Contains("[MISMATCH]", output, "Modified file should be detected as mismatch");
+            Assert.Contains("Mismatches: 1", output, "Summary should show 1 mismatch");
         }
 
         [TestMethod]
@@ -180,7 +180,7 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(updateOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[UPDATE]", "File should be updated");
+            Assert.Contains("[UPDATE]", output, "File should be updated");
 
             using (var db = new DatabaseService(dbPath))
             {
@@ -235,8 +235,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(deleteOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[DELETED]", "File should be deleted from database");
-            StringAssert.Contains(output, "Files removed from database: 1", "Summary should show 1 file removed");
+            Assert.Contains("[DELETED]", output, "File should be deleted from database");
+            Assert.Contains("Files removed from database: 1", output, "Summary should show 1 file removed");
 
             using (var db = new DatabaseService(dbPath))
             {
@@ -270,8 +270,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(deleteOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[NOT FOUND]", "Should indicate file not in database");
-            StringAssert.Contains(output, "Not in database", "Message should explain file is not tracked");
+            Assert.Contains("[NOT FOUND]", output, "Should indicate file not in database");
+            Assert.Contains("Not in database", output, "Message should explain file is not tracked");
         }
 
         [TestMethod]
@@ -300,7 +300,7 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[ADD]", "File should be added");
+            Assert.Contains("[ADD]", output, "File should be added");
 
             var dbPath = Path.Combine(_testDir, BitCheckConstants.DatabaseFileName);
             using var db = new DatabaseService(dbPath);
@@ -337,8 +337,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Error:", "Should show error for non-existent file");
-            StringAssert.Contains(output, "File not found", "Error should indicate file not found");
+            Assert.Contains("Error:", output, "Should show error for non-existent file");
+            Assert.Contains("File not found", output, "Error should indicate file not found");
         }
 
         [TestMethod]

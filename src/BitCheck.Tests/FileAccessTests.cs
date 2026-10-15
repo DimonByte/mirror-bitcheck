@@ -204,7 +204,7 @@ namespace BitCheck.Tests
 
             File.WriteAllText(readableFile, "Content");
             File.WriteAllText(emptyFile, string.Empty);
-            File.WriteAllBytes(binaryFile, new byte[] { 0x00, 0xFF, 0x42 });
+            File.WriteAllBytes(binaryFile, [0x00, 0xFF, 0x42]);
 
             // Act
             var files = Directory.GetFiles(_testDir);
@@ -269,12 +269,10 @@ namespace BitCheck.Tests
             File.WriteAllText(testFile, "Shared content");
 
             // Act & Assert
-            using (var stream1 = new FileStream(testFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var stream2 = new FileStream(testFile, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                Assert.IsTrue(stream1.CanRead);
-                Assert.IsTrue(stream2.CanRead);
-            }
+            using var stream1 = new FileStream(testFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var stream2 = new FileStream(testFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+            Assert.IsTrue(stream1.CanRead);
+            Assert.IsTrue(stream2.CanRead);
         }
 
         [TestMethod]

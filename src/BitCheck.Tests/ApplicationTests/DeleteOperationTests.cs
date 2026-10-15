@@ -26,8 +26,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Error:", "Should show error");
-            StringAssert.Contains(output, "--delete can only be used with --file", "Error should explain delete requires file");
+            Assert.Contains("Error:", output, "Should show error");
+            Assert.Contains("--delete can only be used with --file", output, "Error should explain delete requires file");
         }
 
         [TestMethod]
@@ -54,8 +54,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Error:", "Should show error");
-            StringAssert.Contains(output, "--recursive cannot be used with --file", "Error should explain recursive is invalid with file");
+            Assert.Contains("Error:", output, "Should show error");
+            Assert.Contains("--recursive cannot be used with --file", output, "Error should explain recursive is invalid with file");
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace BitCheck.Tests.ApplicationTests
 
             using var capture1 = new StringWriter();
             RunApp(deleteWithAdd, _testDir, capture1);
-            StringAssert.Contains(capture1.ToString(), "--delete cannot be combined with other operations",
+            Assert.Contains("--delete cannot be combined with other operations", capture1.ToString(),
                 "Should reject --delete with --add");
 
             // Test --delete with --update
@@ -101,7 +101,7 @@ namespace BitCheck.Tests.ApplicationTests
 
             using var capture2 = new StringWriter();
             RunApp(deleteWithUpdate, _testDir, capture2);
-            StringAssert.Contains(capture2.ToString(), "--delete cannot be combined with other operations",
+            Assert.Contains("--delete cannot be combined with other operations", capture2.ToString(),
                 "Should reject --delete with --update");
 
             // Test --delete with --check
@@ -121,7 +121,7 @@ namespace BitCheck.Tests.ApplicationTests
 
             using var capture3 = new StringWriter();
             RunApp(deleteWithCheck, _testDir, capture3);
-            StringAssert.Contains(capture3.ToString(), "--delete cannot be combined with other operations",
+            Assert.Contains("--delete cannot be combined with other operations", capture3.ToString(),
                 "Should reject --delete with --check");
         }
     }

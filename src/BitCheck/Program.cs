@@ -18,7 +18,7 @@ namespace BitCheck
         {
             if (args.Length == 0)
             {
-                args = new[] { "--help" };
+                args = ["--help"];
             }
 
             var rootCommand = BuildRootCommand();
@@ -128,7 +128,7 @@ namespace BitCheck
                 context.ParseResult.GetValueForOption(_deleteOption),
                 context.ParseResult.GetValueForOption(_infoOption),
                 context.ParseResult.GetValueForOption(_listOption),
-                context.ParseResult.GetValueForOption(_ignorePatternOption) ?? Array.Empty<string>());
+                context.ParseResult.GetValueForOption(_ignorePatternOption) ?? []);
 
             return new BitCheckApplication(options).Run();
         }

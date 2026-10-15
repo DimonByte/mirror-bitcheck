@@ -45,11 +45,11 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(infoOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[TRACKED]", "Should show file is tracked");
-            StringAssert.Contains(output, "Hash:", "Should show hash");
-            StringAssert.Contains(output, "Hash Date:", "Should show hash date");
-            StringAssert.Contains(output, "Last Check:", "Should show last check date");
-            StringAssert.Contains(output, "Current File Status:", "Should show current file status");
+            Assert.Contains("[TRACKED]", output, "Should show file is tracked");
+            Assert.Contains("Hash:", output, "Should show hash");
+            Assert.Contains("Hash Date:", output, "Should show hash date");
+            Assert.Contains("Last Check:", output, "Should show last check date");
+            Assert.Contains("Current File Status:", output, "Should show current file status");
         }
 
         [TestMethod]
@@ -76,7 +76,7 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(infoOptions, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "[NOT TRACKED]", "Should show file is not tracked");
+            Assert.Contains("[NOT TRACKED]", output, "Should show file is not tracked");
         }
 
         [TestMethod]
@@ -100,8 +100,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Error:", "Should show error");
-            StringAssert.Contains(output, "--info can only be used with --file", "Should explain info requires file");
+            Assert.Contains("Error:", output, "Should show error");
+            Assert.Contains("--info can only be used with --file", output, "Should explain info requires file");
         }
 
         [TestMethod]
@@ -128,8 +128,8 @@ namespace BitCheck.Tests.ApplicationTests
             RunApp(options, _testDir, capture);
             var output = capture.ToString();
 
-            StringAssert.Contains(output, "Error:", "Should show error");
-            StringAssert.Contains(output, "--info cannot be combined with other operations", "Should explain info is standalone");
+            Assert.Contains("Error:", output, "Should show error");
+            Assert.Contains("--info cannot be combined with other operations", output, "Should explain info is standalone");
         }
     }
 }
