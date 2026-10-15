@@ -38,6 +38,7 @@ namespace BitCheck
         private static Option<bool> _deleteOption = null!;
         private static Option<bool> _infoOption = null!;
         private static Option<bool> _listOption = null!;
+        private static Option<string?> _mirrorDeviceOption = null!;
         private static Option<string[]> _ignorePatternOption = null!;
 
         /// <summary>
@@ -69,6 +70,8 @@ namespace BitCheck
             _infoOption.AddAlias("-i");
             _listOption = new Option<bool>("--list", "List all files tracked in the database");
             _listOption.AddAlias("-l");
+            _mirrorDeviceOption = new Option<string?>("--drive-mirror", "When corruption is detected, the file will be checked on the selected device mirror, if the file on the mirror isn't corrupted, the corrupted file is replaced with the one in the mirror.");
+            _mirrorDeviceOption.AddAlias("-dm");
             _ignorePatternOption = new Option<string[]>("--ignore-pattern", "Glob pattern to ignore (repeatable); combines with any .bitcheckignore files found while scanning")
             {
                 AllowMultipleArgumentsPerToken = true
@@ -88,6 +91,7 @@ namespace BitCheck
                 _deleteOption,
                 _infoOption,
                 _listOption,
+                _mirrorDeviceOption,
                 _ignorePatternOption
             };
 
@@ -128,6 +132,7 @@ namespace BitCheck
                 context.ParseResult.GetValueForOption(_deleteOption),
                 context.ParseResult.GetValueForOption(_infoOption),
                 context.ParseResult.GetValueForOption(_listOption),
+                context.ParseResult.GetValueForOption(_mirrorDeviceOption),
                 context.ParseResult.GetValueForOption(_ignorePatternOption) ?? []);
 
             return new BitCheckApplication(options).Run();

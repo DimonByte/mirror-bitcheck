@@ -13,6 +13,7 @@ namespace BitCheck.Application
         bool Delete,
         bool Info,
         bool List,
+        string? MirrorDevice,
         IReadOnlyList<string>? IgnorePatterns = null)
     {
         public IReadOnlyList<string> IgnorePatterns { get; init; } = IgnorePatterns ?? [];

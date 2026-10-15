@@ -11,7 +11,7 @@ namespace BitCheck.Database
         public string FileName { get; set; } = string.Empty;
 
         /// <summary>
-        /// The XXHash64 hex string of the file contents.
+        /// The XXHash3 hex string of the file contents.
         /// </summary>
         public string Hash { get; set; } = string.Empty;
 

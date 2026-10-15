@@ -121,7 +121,7 @@ namespace BitCheck.Application
         }
 
         /// <summary>
-        /// Computes the XXHash64 hash of the specified file.
+        /// Computes the XXHash3 hash of the specified file.
         /// </summary>
         /// <param name="path">Absolute or relative file path.</param>
         /// <param name="cancellationToken">Optional cancellation token to abort the operation.</param>
@@ -131,7 +131,7 @@ namespace BitCheck.Application
             try
             {
                 using var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                var hasher = new XxHash64();
+                var hasher = new XxHash3();
                 
                 // Read in chunks to allow cancellation during large file hashing
                 var buffer = new byte[81920]; // 80KB buffer

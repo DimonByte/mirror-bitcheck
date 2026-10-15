@@ -1,4 +1,3 @@
-using System.IO.Hashing;
 using BitCheck.Database;
 
 namespace BitCheck.Application
@@ -16,6 +15,7 @@ namespace BitCheck.Application
         private readonly ProcessingStats _stats = new();
         private readonly CancellationTokenSource _cts = new();
         private string? _lastPrintedDirectory;
+        private string? _mirrorRoot;
         private readonly IgnoreRuleSet _baseIgnoreRules = IgnoreRuleSet.Parse(options.IgnorePatterns);
 
         /// <summary>
@@ -51,17 +51,17 @@ namespace BitCheck.Application
                 }
 
                 WriteSummary(DateTime.UtcNow - startTime);
-                
+
                 // Return non-zero if there were unresolved mismatches or missing files
                 // If update mode is on and mismatches were fixed, that's success
                 bool hasUnresolvedMismatches = _stats.FilesMismatched > 0 && !_options.Update;
                 bool hasUnresolvedMissingFiles = _stats.FilesMissing > 0 && _stats.FilesRemoved == 0;
-                
+
                 if (hasUnresolvedMismatches || hasUnresolvedMissingFiles)
                 {
                     return 1;
                 }
-                
+
                 return 0;
             }
             catch (OperationCanceledException)
@@ -155,6 +155,35 @@ namespace BitCheck.Application
                 return false;
             }
 
+            // --drive-mirror only makes sense when checking (repairs happen on hash mismatch)
+            if (!string.IsNullOrWhiteSpace(_options.MirrorDevice))
+            {
+                if (!_options.Check)
+                {
+                    Console.WriteLine("Error: --drive-mirror can only be used with --check.");
+                    Console.WriteLine("Use --help for usage information.");
+                    return false;
+                }
+
+                if (_options.Delete || _options.Info || _options.List)
+                {
+                    Console.WriteLine("Error: --drive-mirror cannot be used with --delete, --info, or --list.");
+                    Console.WriteLine("Use --help for usage information.");
+                    return false;
+                }
+
+                // A trailing backslash before a closing quote (e.g. "E:\") escapes the quote on Windows,
+                // so strip any stray quotes that ended up in the value.
+                var mirror = _options.MirrorDevice.Trim().Trim('"');
+                if (!Directory.Exists(mirror))
+                {
+                    Console.WriteLine($"Error: Mirror location not found: {mirror}");
+                    return false;
+                }
+
+                _mirrorRoot = Path.GetFullPath(mirror);
+            }
+
             // In delete, info, or list mode, no other operation is needed
             if (_options.Delete || _options.Info || _options.List)
             {
@@ -189,6 +218,10 @@ namespace BitCheck.Application
             if (_options.SingleDatabase)
             {
                 Console.WriteLine("Single Database: True");
+            }
+            if (_mirrorRoot != null)
+            {
+                Console.WriteLine($"Drive Mirror: {_mirrorRoot}");
             }
 
             Console.WriteLine();
@@ -232,6 +265,10 @@ namespace BitCheck.Application
             {
                 Console.WriteLine($"Files checked: {_stats.FilesChecked}");
                 Console.WriteLine($"Mismatches: {_stats.FilesMismatched}");
+                if (_mirrorRoot != null)
+                {
+                    Console.WriteLine($"Restored from mirror: {_stats.FilesRestored}");
+                }
             }
 
             if (_stats.FilesMissing > 0)
@@ -652,7 +689,7 @@ namespace BitCheck.Application
                 }
 
                 _stats.FilesProcessed++;
-                
+
                 // Track file size
                 var fileInfo = new FileInfo(filePath);
                 _stats.TotalBytesProcessed += fileInfo.Length;
@@ -864,6 +901,14 @@ namespace BitCheck.Application
             }
 
             Console.WriteLine($"  Last successful check: {existingEntry.LastCheckDate:yyyy-MM-dd HH:mm:ss} UTC");
+
+            // Try to repair from the drive mirror before counting this as an unresolved mismatch
+            // (and before --update could overwrite the good hash with the corrupted one).
+            if (TryRestoreFromMirror(db, existingEntry, filePath, displayName, hashMatches))
+            {
+                return;
+            }
+
             _stats.FilesMismatched++;
 
             if (_options.Update)
@@ -872,6 +917,127 @@ namespace BitCheck.Application
                 Console.WriteLine("  [UPDATED] Database entry updated");
                 _stats.FilesUpdated++;
             }
+        }
+
+        /// <summary>
+        /// Attempts to repair a corrupted file by copying the same file from the drive mirror.
+        /// The mirror copy must hash to the hash stored in this location's database, which guarantees
+        /// the restored file is byte-identical to the version that was originally recorded.
+        /// </summary>
+        /// <param name="db">The database service for the file being repaired.</param>
+        /// <param name="entry">The existing database entry (holds the expected hash).</param>
+        /// <param name="filePath">The corrupted file.</param>
+        /// <param name="displayName">The display name for the file.</param>
+        /// <param name="hashMatches">True if the file's hash matched the database (nothing to repair).</param>
+        /// <returns><c>true</c> if the file was restored from the mirror; otherwise <c>false</c>.</returns>
+        private bool TryRestoreFromMirror(IDatabaseService db, FileEntry entry, string filePath, string displayName, bool hashMatches)
+        {
+            // Only repair genuine content mismatches (a timestamp-only mismatch is not corruption)
+            if (_mirrorRoot == null || hashMatches)
+            {
+                return false;
+            }
+
+            var fullFilePath = Path.GetFullPath(filePath);
+            var sourceRoot = Path.GetPathRoot(fullFilePath);
+            if (sourceRoot == null)
+            {
+                return false;
+            }
+
+            // Same relative location on the mirror, e.g. D:\Photos\a.jpg -> E:\Photos\a.jpg
+            var mirrorPath = Path.GetFullPath(Path.Combine(_mirrorRoot, Path.GetRelativePath(sourceRoot, fullFilePath)));
+            var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            if (string.Equals(mirrorPath, fullFilePath, comparison))
+            {
+                Console.WriteLine("  [MIRROR] Mirror location is the same as the source; skipping");
+                return false;
+            }
+
+            if (!File.Exists(mirrorPath))
+            {
+                Console.WriteLine($"  [MIRROR] Not found on mirror: {mirrorPath}");
+                return false;
+            }
+
+            // Safety check: if the modified date changed since the hash was recorded, the file was probably
+            // edited on purpose. Restoring the old mirror copy would silently throw that edit away,
+            // so only do it when --strict says every hash mismatch should be treated as corruption.
+            var currentModified = new FileInfo(fullFilePath).LastWriteTimeUtc;
+            if (!AreDatesClose(entry.LastModified, currentModified) && !_options.Strict)
+            {
+                Console.WriteLine("  [MIRROR] File modified date changed since last hash - not overwriting (use --strict to treat as corruption)");
+                return false;
+            }
+
+            if (!FileSystemUtilities.CanReadFile(mirrorPath, out var errorReason))
+            {
+                Console.WriteLine($"  [MIRROR] Cannot read mirror file: {errorReason}");
+                return false;
+            }
+
+            // Verify against the hash stored for THIS file, not the mirror's own database.
+            var mirrorHash = FileSystemUtilities.ComputeHash(mirrorPath, _cts.Token);
+            _stats.TotalBytesProcessed += new FileInfo(mirrorPath).Length;
+            if (mirrorHash == null)
+            {
+                Console.WriteLine("  [MIRROR] Could not hash mirror file");
+                return false;
+            }
+
+            if (!string.Equals(mirrorHash, entry.Hash, StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("  [MIRROR] Mirror copy does not match the expected hash (corrupted or a different version) - not restoring");
+                return false;
+            }
+
+            // Copy to a temp file beside the target, re-verify, then swap it in so a failed copy never
+            // leaves the target half-written.
+            var tempPath = Path.Combine(Path.GetDirectoryName(fullFilePath)!, $".{Path.GetFileName(fullFilePath)}.bitcheck-restore.tmp");
+            try
+            {
+                File.Copy(mirrorPath, tempPath, overwrite: true);
+
+                var tempHash = FileSystemUtilities.ComputeHash(tempPath, _cts.Token);
+                if (!string.Equals(tempHash, entry.Hash, StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("  [MIRROR] Copied file failed verification - not restoring");
+                    TryDeleteFile(tempPath);
+                    return false;
+                }
+
+                // Put the recorded timestamps back so the restored file matches the database
+                File.SetLastWriteTimeUtc(tempPath, entry.LastModified);
+                try { File.SetCreationTimeUtc(tempPath, entry.CreatedDate); } catch { /* not supported on every platform */ }
+
+                File.Move(tempPath, fullFilePath, overwrite: true);
+            }
+            catch (OperationCanceledException)
+            {
+                TryDeleteFile(tempPath);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                TryDeleteFile(tempPath);
+                Console.WriteLine($"  [MIRROR] Restore failed: {ex.Message}");
+                return false;
+            }
+
+            entry.LastCheckDate = DateTime.UtcNow;
+            db.UpdateFileEntry(entry);
+            _stats.FilesRestored++;
+            Console.WriteLine($"  [RESTORED] {displayName} - replaced with verified copy from {mirrorPath}");
+            return true;
+        }
+
+        /// <summary>
+        /// Deletes a file, ignoring any errors.
+        /// </summary>
+        /// <param name="path">The file to delete.</param>
+        private static void TryDeleteFile(string path)
+        {
+            try { File.Delete(path); } catch { /* best effort */ }
         }
 
         /// <summary>
@@ -1038,7 +1204,7 @@ namespace BitCheck.Application
                 return $"{bytes / (double)MB:F2} MB";
             if (bytes >= KB)
                 return $"{bytes / (double)KB:F2} KB";
-            
+
             return $"{bytes} B";
         }
 

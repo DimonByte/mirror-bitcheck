@@ -49,5 +49,10 @@ namespace BitCheck.Application
         /// Total size in bytes of all files processed.
         /// </summary>
         public long TotalBytesProcessed { get; set; }
+
+        /// <summary>
+        /// Files that were restored from a mirror device during the run.
+        /// </summary>
+        public int FilesRestored { get; set; }
     }
 }
